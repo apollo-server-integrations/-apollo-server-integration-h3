@@ -1,8 +1,6 @@
-import {
-  makeServer,
+import type {
   ServerOptions,
-  ConnectionInitMessage,
-  GRAPHQL_TRANSPORT_WS_PROTOCOL,
+  ConnectionInitMessage
 } from 'graphql-ws'
 import {
   defineWebSocket,
@@ -43,10 +41,15 @@ interface Client {
  * Use this over {@link defineGraphqlWebSocketHandler} if you need more control over the WebSocket server or
  * if you want to add custom hooks (e.g. for authentication or logging).
  */
-export function defineGraphqlWebSocket<
+export async function defineGraphqlWebSocket<
   P extends ConnectionInitMessage['payload'] = ConnectionInitMessage['payload'],
   E extends Record<PropertyKey, unknown> = Record<PropertyKey, never>,
->(options: ServerOptions<P, Extra & Partial<E>>): Partial<Hooks> {
+>(options: ServerOptions<P, Extra & Partial<E>>): Promise<Partial<Hooks>> {
+  // Local import since graphql-ws is only an optional peer dependency
+  const {
+    makeServer,
+    GRAPHQL_TRANSPORT_WS_PROTOCOL,
+  } = await import('graphql-ws')
   const server = makeServer(options)
   const peers = new WeakMap<Peer, Client>()
   return defineWebSocket({
@@ -103,11 +106,11 @@ export function defineGraphqlWebSocket<
  *
  * @category Server/h3
  */
-export function defineGraphqlWebSocketHandler<
+export async function defineGraphqlWebSocketHandler<
   P extends ConnectionInitMessage['payload'] = ConnectionInitMessage['payload'],
   E extends Record<PropertyKey, unknown> = Record<PropertyKey, never>,
 >(
   options: ServerOptions<P, Extra & Partial<E>>,
-): EventHandler<EventHandlerRequest, never> {
-  return defineWebSocketHandler(defineGraphqlWebSocket(options))
+): Promise<EventHandler<EventHandlerRequest, never>> {
+  return defineWebSocketHandler(await defineGraphqlWebSocket(options))
 }

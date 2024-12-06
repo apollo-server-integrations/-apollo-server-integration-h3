@@ -64,7 +64,7 @@ app.use(
   '/ws',
   startServerAndCreateH3Handler(apollo, {
     websocket: {
-      ...defineGraphqlWebSocket({ schema }),
+      ...await defineGraphqlWebSocket({ schema }),
       error(peer, error) {
         console.error('[ws] error', peer, error)
         // In a real app, you would want to properly log this error
@@ -90,7 +90,7 @@ app.use(
 app.use(
   '/_ws',
   defineWebSocketHandler({
-    ...defineGraphqlWebSocket({ schema }),
+    ...await defineGraphqlWebSocket({ schema }),
     error(peer, error) {
       console.log('[ws] error', peer, error)
     },
